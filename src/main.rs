@@ -9,11 +9,12 @@ use std::thread::sleep;
 
 const SECONDS_IN_MINUTE: u32 = 60;
 const SECONDS_IN_HOUR: u32 = 3600;
+const SECONDS_IN_DAY: u32 = 86400;
 
 fn main() {
     let window = initscr();
     let max_x: i32 = window.get_max_x();
-    let time_progress_window = newwin(2, max_x - 3, 2, 1);
+    let time_progress_window = newwin(3, max_x - 3, 2, 1);
 
     if has_colors() {
         start_color();
@@ -50,12 +51,17 @@ fn main() {
         window.printw(" ".repeat((max_x -2) as usize));
         window.printw("┃");
 
+        window.printw("┃");
+        window.printw(" ".repeat((max_x -2) as usize));
+        window.printw("┃");
+
         window.printw("┗");
         window.printw("━".repeat((max_x -2) as usize));
         window.printw("┛");
 
         time_progress_window.color_set(3);
 
+        // Start Minutes
         time_progress_window.mv(0, 0);
         time_progress_window.printw(" M ");
         let progress_width = time_progress_window.get_max_x() - 15;
@@ -74,11 +80,10 @@ fn main() {
         time_progress_window.printw(" ");
         time_progress_window.printw(formatted_number.to_string());
 
-
+        // Start Hours
         time_progress_window.mv(1, 0);
         time_progress_window.printw(" H ");
         let progress_width = time_progress_window.get_max_x() - 15;
-        let seconds = seconds;
         let minutes = (date.minute() as f64 * 60.0) + seconds;
 
         let hour_progress_percentage_complete = minutes / SECONDS_IN_HOUR as f64 * 100.00;
@@ -90,6 +95,25 @@ fn main() {
             }
         }
         let formatted_number = format!("{:.*}", 2, hour_progress_percentage_complete);
+        time_progress_window.printw(" ");
+        time_progress_window.printw(formatted_number.to_string());
+
+
+        // Start Days
+        time_progress_window.mv(2, 0);
+        time_progress_window.printw(" D ");
+        let progress_width = time_progress_window.get_max_x() - 15;
+        let days = (date.hour() as f64 * 60.0 * 60.0) + minutes + seconds;
+
+        let day_progress_percentage_complete = days / SECONDS_IN_DAY as f64 * 100.00;
+        for n in 1..progress_width {
+            if (n as f64 / progress_width as f64 * 100.0) < day_progress_percentage_complete as f64 {
+                time_progress_window.printw("█");
+            } else {
+                time_progress_window.printw("░");
+            }
+        }
+        let formatted_number = format!("{:.*}", 2, day_progress_percentage_complete);
         time_progress_window.printw(" ");
         time_progress_window.printw(formatted_number.to_string());
 
