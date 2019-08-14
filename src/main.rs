@@ -2,7 +2,7 @@ extern crate chrono;
 extern crate pancurses;
 
 use chrono::Local;
-use crate::chrono::Timelike;
+use chrono::{Datelike, Timelike, Utc, NaiveDate};
 use pancurses::*;
 use std::time::Duration;
 use std::thread::sleep;
@@ -14,7 +14,7 @@ const SECONDS_IN_DAY: u32 = 86400;
 fn main() {
     let window = initscr();
     let max_x: i32 = window.get_max_x();
-    let time_progress_window = newwin(3, max_x - 3, 2, 1);
+    let time_progress_window = newwin(4, max_x - 3, 2, 1);
 
     if has_colors() {
         start_color();
@@ -42,6 +42,10 @@ fn main() {
         window.printw("┏");
         window.printw(&horizontal_border);
         window.printw("┓");
+
+        window.printw("┃");
+        window.printw(" ".repeat((max_x -2) as usize));
+        window.printw("┃");
 
         window.printw("┃");
         window.printw(" ".repeat((max_x -2) as usize));
@@ -103,7 +107,7 @@ fn main() {
         time_progress_window.mv(2, 0);
         time_progress_window.printw(" D ");
         let progress_width = time_progress_window.get_max_x() - 15;
-        let days = (date.hour() as f64 * 60.0 * 60.0) + minutes + seconds;
+        let days = (date.hour() as f64 * 3600.0) + minutes + seconds;
 
         let day_progress_percentage_complete = days / SECONDS_IN_DAY as f64 * 100.00;
         for n in 1..progress_width {
@@ -117,6 +121,27 @@ fn main() {
         time_progress_window.printw(" ");
         time_progress_window.printw(formatted_number.to_string());
 
+        // Start Months
+        time_progress_window.mv(3, 0);
+        time_progress_window.printw(" M ");
+        let now = Utc::now();
+
+        let progress_width = time_progress_window.get_max_x() - 15;
+        let seconds_in_current_month = seconds_in_month(now.year(), now.month());
+        let seconds_elapsed_in_current_month = (date.day() as f64 * 86400.0) + days + minutes + seconds;
+
+        let month_progress_percentage_complete = seconds_elapsed_in_current_month / seconds_in_current_month as f64 * 100.00;
+        for n in 1..progress_width {
+            if (n as f64 / progress_width as f64 * 100.0) < month_progress_percentage_complete as f64 {
+                time_progress_window.printw("█");
+            } else {
+                time_progress_window.printw("░");
+            }
+        }
+        let formatted_number = format!("{:.*}", 2, month_progress_percentage_complete);
+        time_progress_window.printw(" ");
+        time_progress_window.printw(formatted_number.to_string());
+
         window.refresh();
         window.clear();
         time_progress_window.refresh();
@@ -125,4 +150,13 @@ fn main() {
         sleep(Duration::from_millis(50));
    }
   endwin();
+}
+
+fn seconds_in_month(year: i32, month: u32) -> u32 {
+    // the first day of the next month...
+    let (y, m) = if month == 12 { (year + 1, 1) } else { (year, month + 1) };
+    let d = NaiveDate::from_ymd(y, m, 1);
+
+    // ...is preceded by the last day of the original month
+    d.pred().day() * SECONDS_IN_DAY
 }
