@@ -25,7 +25,6 @@ fn main() {
         init_pair(3, COLOR_WHITE, COLOR_BLACK);
         init_pair(4, COLOR_WHITE, COLOR_BLACK);
     }
-    //println!("{}", day_ticker);
 
     // https://en.wikipedia.org/wiki/Geometric_Shapes
     // https://en.wikipedia.org/wiki/Box_Drawing_(Unicode_block)
