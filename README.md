@@ -3,7 +3,9 @@
 ## What is this?
 This is a project I am using as a means to help me learn Rust. I am new to Rust so the code may not be "ideal". I am very open to any and all feedback and would appreciate any.
 
-It is heavily inspired by [https://github.com/rothman857/chronometer](https://github.com/rothman857/chronometer) which is done in Python. 
+It is heavily inspired by [https://github.com/rothman857/chronometer](https://github.com/rothman857/chronometer) which is done in Python.
+
+<img src="./screenshot.png" align="right" height="50%" hspace="30px" max-width="30%" width="50%"  />
 
 This project may end up as more of a clone of chromometer or may not. I really don't know what the end result will look like. The goal here is to experiment and learn Rust.
 
