@@ -3,6 +3,7 @@ extern crate pancurses;
 
 use chrono::Local;
 use chrono::{Datelike, Timelike, Utc, NaiveDate};
+use chrono::prelude::*;
 use pancurses::*;
 use std::time::Duration;
 use std::thread::sleep;
@@ -14,7 +15,7 @@ const SECONDS_IN_DAY: u32 = 86400;
 fn main() {
     let window = initscr();
     let max_x: i32 = window.get_max_x();
-    let time_progress_window = newwin(4, max_x - 3, 2, 1);
+    let time_progress_window = newwin(5, max_x - 3, 2, 1);
 
     if has_colors() {
         start_color();
@@ -22,6 +23,7 @@ fn main() {
         init_pair(1, COLOR_WHITE, COLOR_BLUE);
         init_pair(2, COLOR_BLUE, COLOR_BLACK);
         init_pair(3, COLOR_WHITE, COLOR_BLACK);
+        init_pair(4, COLOR_WHITE, COLOR_BLACK);
     }
 
     // https://en.wikipedia.org/wiki/Geometric_Shapes
@@ -30,7 +32,7 @@ fn main() {
         let date = Local::now();
         window.color_set(1);
 
-        let top_border = date.format("%H:%M:%S - %A %B %d, %Y").to_string();
+        let top_border = format!("{}", date.format("%H:%M:%S - %A %B %d, %Y").to_string());
         let horizontal_border = "━".repeat((max_x -2) as usize);
         let border = format!("{: ^1$}", top_border.to_string(), max_x as usize);
 
@@ -59,14 +61,33 @@ fn main() {
         window.printw(" ".repeat((max_x -2) as usize));
         window.printw("┃");
 
+        window.printw("┃");
+        window.printw(" ".repeat((max_x -2) as usize));
+        window.printw("┃");
+
         window.printw("┗");
         window.printw("━".repeat((max_x -2) as usize));
         window.printw("┛");
 
         time_progress_window.color_set(3);
 
-        // Start Minutes
+        // Start days left
+        let month_length_days = vec![31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+        let today_date: DateTime<Utc> = Utc::now(); 
+        let this_month = today_date.month()-1;
+        let this_day = today_date.day();
+        let mut month_ticker: usize = 0;
+        let mut day_ticker = 0;
+        while month_ticker < this_month as usize {
+            day_ticker = day_ticker + month_length_days[month_ticker];
+            month_ticker+=1;
+        }
+        day_ticker = day_ticker + this_day;
         time_progress_window.mv(0, 0);
+        time_progress_window.printw(format!(" It is day {} of 365 - {} days remaining in {}", day_ticker, 365-day_ticker, today_date.year()));
+
+        // Start Minutes
+        time_progress_window.mv(1, 0);
         time_progress_window.printw(" M ");
         let progress_width = time_progress_window.get_max_x() - 15;
         let milli_seconds = (date.timestamp_subsec_millis() as f64/ 1000.0) as f64;
@@ -85,7 +106,7 @@ fn main() {
         time_progress_window.printw(formatted_number.to_string());
 
         // Start Hours
-        time_progress_window.mv(1, 0);
+        time_progress_window.mv(2, 0);
         time_progress_window.printw(" H ");
         let progress_width = time_progress_window.get_max_x() - 15;
         let minutes = (date.minute() as f64 * 60.0) + seconds;
@@ -104,7 +125,7 @@ fn main() {
 
 
         // Start Days
-        time_progress_window.mv(2, 0);
+        time_progress_window.mv(3, 0);
         time_progress_window.printw(" D ");
         let progress_width = time_progress_window.get_max_x() - 15;
         let days = (date.hour() as f64 * 3600.0) + minutes + seconds;
@@ -122,7 +143,7 @@ fn main() {
         time_progress_window.printw(formatted_number.to_string());
 
         // Start Months
-        time_progress_window.mv(3, 0);
+        time_progress_window.mv(4, 0);
         time_progress_window.printw(" M ");
         let now = Utc::now();
 
