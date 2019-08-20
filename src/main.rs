@@ -11,11 +11,12 @@ use std::thread::sleep;
 const SECONDS_IN_MINUTE: u32 = 60;
 const SECONDS_IN_HOUR: u32 = 3600;
 const SECONDS_IN_DAY: u32 = 86400;
+const SECONDS_IN_YEAR: u32 = 31536000;
 
 fn main() {
     let window = initscr();
     let max_x: i32 = window.get_max_x();
-    let time_progress_window = newwin(5, max_x - 3, 2, 1);
+    let time_progress_window = newwin(6, max_x - 3, 2, 1);
 
     if has_colors() {
         start_color();
@@ -44,6 +45,10 @@ fn main() {
         window.printw("┏");
         window.printw(&horizontal_border);
         window.printw("┓");
+
+        window.printw("┃");
+        window.printw(" ".repeat((max_x -2) as usize));
+        window.printw("┃");
 
         window.printw("┃");
         window.printw(" ".repeat((max_x -2) as usize));
@@ -160,6 +165,27 @@ fn main() {
             }
         }
         let formatted_number = format!("{:.*}", 2, month_progress_percentage_complete);
+        time_progress_window.printw(" ");
+        time_progress_window.printw(formatted_number.to_string());
+
+        // Start Year
+        time_progress_window.mv(5, 0);
+        time_progress_window.printw(" Y ");
+
+        let progress_width = time_progress_window.get_max_x() - 15;
+        let days = (date.hour() as f64 * 3600.0) + minutes + seconds;
+        let seconds_elapsed_in_current_year = (day_ticker as f64 * SECONDS_IN_DAY as f64) + days;
+
+
+        let year_progress_percentage_complete = seconds_elapsed_in_current_year / SECONDS_IN_YEAR as f64 * 100.00;
+        for n in 1..progress_width {
+            if (n as f64 / progress_width as f64 * 100.0) < year_progress_percentage_complete as f64 {
+                time_progress_window.printw("█");
+            } else {
+                time_progress_window.printw("░");
+            }
+        }
+        let formatted_number = format!("{:.*}", 2, year_progress_percentage_complete);
         time_progress_window.printw(" ");
         time_progress_window.printw(formatted_number.to_string());
 
