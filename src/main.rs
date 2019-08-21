@@ -107,7 +107,7 @@ fn main() {
                 time_progress_window.printw("░");
             }
         }
-        let formatted_number = format!("{:.*}", 2, minute_progress_percentage_complete);
+        let formatted_number = format!("{:0>5.*}", 5, format!("{:.*}", 2, minute_progress_percentage_complete));
         time_progress_window.printw(" ");
         time_progress_window.printw(formatted_number.to_string());
 
@@ -125,7 +125,7 @@ fn main() {
                 time_progress_window.printw("░");
             }
         }
-        let formatted_number = format!("{:.*}", 2, hour_progress_percentage_complete);
+        let formatted_number = format!("{:0>5.*}", 5, format!("{:.*}", 2, hour_progress_percentage_complete));
         time_progress_window.printw(" ");
         time_progress_window.printw(formatted_number.to_string());
 
@@ -144,7 +144,7 @@ fn main() {
                 time_progress_window.printw("░");
             }
         }
-        let formatted_number = format!("{:.*}", 2, day_progress_percentage_complete);
+        let formatted_number = format!("{:0>5.*}", 5, format!("{:.*}", 2, day_progress_percentage_complete));
         time_progress_window.printw(" ");
         time_progress_window.printw(formatted_number.to_string());
 
@@ -164,7 +164,7 @@ fn main() {
                 time_progress_window.printw("░");
             }
         }
-        let formatted_number = format!("{:.*}", 2, month_progress_percentage_complete);
+        let formatted_number = format!("{:0>5.*}", 5, format!("{:.*}", 2, month_progress_percentage_complete));
         time_progress_window.printw(" ");
         time_progress_window.printw(formatted_number.to_string());
 
@@ -185,7 +185,7 @@ fn main() {
                 time_progress_window.printw("░");
             }
         }
-        let formatted_number = format!("{:.*}", 2, year_progress_percentage_complete);
+        let formatted_number = format!("{:0>5.*}", 5, format!("{:.*}", 2, year_progress_percentage_complete));
         time_progress_window.printw(" ");
         time_progress_window.printw(formatted_number.to_string());
 
