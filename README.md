@@ -1,5 +1,8 @@
 
 # Relogio - Terminal Clock in Rust
+
+[![Build Status](https://travis-ci.org/bmitch/relogio.svg?branch=master)](https://travis-ci.org/bmitch/relogio)
+
 ## What is this?
 This is a project I am using as a means to help me learn Rust. I am new to Rust so the code may not be "ideal". I am very open to any and all feedback and would appreciate any.
 

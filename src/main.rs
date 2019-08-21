@@ -29,7 +29,6 @@ fn main() {
 
     // https://en.wikipedia.org/wiki/Geometric_Shapes
     // https://en.wikipedia.org/wiki/Box_Drawing_(Unicode_block)
-    
     loop {
         let date = Local::now();
         let now = Utc::now();
@@ -108,8 +107,7 @@ fn main() {
                 time_progress_window.printw("░");
             }
         }
-        let r1_format = format!("{:0>10}", minute_progress_percentage_complete);
-        let formatted_number = format!("{:.*}", 2, r1_format);
+        let formatted_number = format!("{:.*}", 2, minute_progress_percentage_complete);
         time_progress_window.printw(" ");
         time_progress_window.printw(formatted_number.to_string());
 
