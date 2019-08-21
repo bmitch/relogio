@@ -11,11 +11,12 @@ use std::thread::sleep;
 const SECONDS_IN_MINUTE: u32 = 60;
 const SECONDS_IN_HOUR: u32 = 3600;
 const SECONDS_IN_DAY: u32 = 86400;
+const SECONDS_IN_YEAR: u32 = 31536000;
 
 fn main() {
     let window = initscr();
     let max_x: i32 = window.get_max_x();
-    let time_progress_window = newwin(5, max_x - 3, 2, 1);
+    let time_progress_window = newwin(6, max_x - 3, 2, 1);
 
     if has_colors() {
         start_color();
@@ -30,21 +31,20 @@ fn main() {
     // https://en.wikipedia.org/wiki/Box_Drawing_(Unicode_block)
     loop {
         let date = Local::now();
+        let now = Utc::now();
+
         window.color_set(1);
 
         let top_border = format!("{}", date.format("%H:%M:%S - %A %B %d, %Y").to_string());
         let horizontal_border = "━".repeat((max_x -2) as usize);
+        let top_border = date.format("%H:%M:%S - %A %B %d, %Y").to_string();
         let border = format!("{: ^1$}", top_border.to_string(), max_x as usize);
 
-
+        let horizontal_border = "━".repeat((max_x -2) as usize);
         window.printw(&border);
         window.mv(1, 0);
         window.color_set(2);
 
-        window.printw("┏");
-        window.printw(&horizontal_border);
-        window.printw("┓");
-
         window.printw("┃");
         window.printw(" ".repeat((max_x -2) as usize));
         window.printw("┃");
@@ -65,9 +65,13 @@ fn main() {
         window.printw(" ".repeat((max_x -2) as usize));
         window.printw("┃");
 
-        window.printw("┗");
-        window.printw("━".repeat((max_x -2) as usize));
-        window.printw("┛");
+        window.printw("┃");
+        window.printw(" ".repeat((max_x -2) as usize));
+        window.printw("┃");
+
+        window.printw("┃");
+        window.printw(" ".repeat((max_x -2) as usize));
+        window.printw("┃");
 
         time_progress_window.color_set(3);
 
@@ -83,11 +87,13 @@ fn main() {
             month_ticker+=1;
         }
         day_ticker = day_ticker + this_day;
-        time_progress_window.mv(0, 0);
-        time_progress_window.printw(format!(" It is day {} of 365 - {} days remaining in {}", day_ticker, 365-day_ticker, today_date.year()));
+        let status_bar_data = format!(" It is day {} of 365 - {} days remaining in {}", day_ticker, 365-day_ticker, today_date.year());
+        let status_bar = format!("{: ^1$}", status_bar_data.to_string(), max_x as usize);
+        window.color_set(1);
+        window.printw(&status_bar);
 
         // Start Minutes
-        time_progress_window.mv(1, 0);
+        time_progress_window.mv(0, 0);
         time_progress_window.printw(" M ");
         let progress_width = time_progress_window.get_max_x() - 15;
         let milli_seconds = (date.timestamp_subsec_millis() as f64/ 1000.0) as f64;
@@ -106,7 +112,7 @@ fn main() {
         time_progress_window.printw(formatted_number.to_string());
 
         // Start Hours
-        time_progress_window.mv(2, 0);
+        time_progress_window.mv(1, 0);
         time_progress_window.printw(" H ");
         let progress_width = time_progress_window.get_max_x() - 15;
         let minutes = (date.minute() as f64 * 60.0) + seconds;
@@ -125,7 +131,7 @@ fn main() {
 
 
         // Start Days
-        time_progress_window.mv(3, 0);
+        time_progress_window.mv(2, 0);
         time_progress_window.printw(" D ");
         let progress_width = time_progress_window.get_max_x() - 15;
         let days = (date.hour() as f64 * 3600.0) + minutes + seconds;
@@ -143,9 +149,8 @@ fn main() {
         time_progress_window.printw(formatted_number.to_string());
 
         // Start Months
-        time_progress_window.mv(4, 0);
+        time_progress_window.mv(3, 0);
         time_progress_window.printw(" M ");
-        let now = Utc::now();
 
         let progress_width = time_progress_window.get_max_x() - 15;
         let seconds_in_current_month = seconds_in_month(now.year(), now.month());
@@ -162,6 +167,28 @@ fn main() {
         let formatted_number = format!("{:.*}", 2, month_progress_percentage_complete);
         time_progress_window.printw(" ");
         time_progress_window.printw(formatted_number.to_string());
+
+        // Start Year
+        time_progress_window.mv(4, 0);
+        time_progress_window.printw(" Y ");
+
+        let progress_width = time_progress_window.get_max_x() - 15;
+        let days = (date.hour() as f64 * 3600.0) + minutes + seconds;
+        let seconds_elapsed_in_current_year = (day_ticker as f64 * SECONDS_IN_DAY as f64) + days;
+
+
+        let year_progress_percentage_complete = seconds_elapsed_in_current_year / SECONDS_IN_YEAR as f64 * 100.00;
+        for n in 1..progress_width {
+            if (n as f64 / progress_width as f64 * 100.0) < year_progress_percentage_complete as f64 {
+                time_progress_window.printw("█");
+            } else {
+                time_progress_window.printw("░");
+            }
+        }
+        let formatted_number = format!("{:.*}", 2, year_progress_percentage_complete);
+        time_progress_window.printw(" ");
+        time_progress_window.printw(formatted_number.to_string());
+
 
         window.refresh();
         window.clear();
