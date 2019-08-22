@@ -1,12 +1,12 @@
 
-# Relogio - Terminal Clock in Rust
-
+# :clock9: Relogio - Terminal Clock in Rust :clock5:
 [![Build Status](https://travis-ci.org/bmitch/relogio.svg?branch=master)](https://travis-ci.org/bmitch/relogio)
 
 ## What is this?
+<img src="./screenshot.png" align="right" />
+
 This is a project I am using as a means to help me learn Rust. I am new to Rust so the code may not be "ideal". I am very open to any and all feedback and would appreciate any.
 
-<img src="./screenshot.png" align="right" height="50%" hspace="30px" max-width="30%" width="50%"  />
 
 It is heavily inspired by [https://github.com/rothman857/chronometer](https://github.com/rothman857/chronometer) which is done in Python.
 
