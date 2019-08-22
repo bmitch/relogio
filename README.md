@@ -1,11 +1,10 @@
 
 # :clock9: Relogio - Terminal Clock in Rust :clock5:
 [![Build Status](https://travis-ci.org/bmitch/relogio.svg?branch=master)](https://travis-ci.org/bmitch/relogio)
----
-<img src="./screenshot.png" align="right" />
-
 
 ## What is this?
+<img src="./screenshot.png" align="right" />
+
 This is a project I am using as a means to help me learn Rust. I am new to Rust so the code may not be "ideal". I am very open to any and all feedback and would appreciate any.
 
 
