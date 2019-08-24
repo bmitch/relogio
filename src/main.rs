@@ -1,8 +1,8 @@
 extern crate chrono;
 extern crate pancurses;
 
-use chrono::Local;
-use chrono::Timelike;
+use chrono::{Datelike, Timelike, Utc, NaiveDate};
+use chrono::prelude::*;
 use pancurses::*;
 use std::time::Duration;
 use std::thread::sleep;
@@ -77,15 +77,18 @@ fn main() {
             prefix: String::from(" D ")
         };
 
-        // Start Hours
-        // time_progress_window.mv(1, 0);
+        let months_bar = TimeProgressBar { 
+            width: window.get_max_x() - 3 - 15,
+            percentage: get_percentage_month_left(),
+            prefix: String::from(" M ")
+        };
 
 
 
 
 
         let time_progress_window = newwin(6, window.get_max_x() - 3, 2, 1);
-        let progress_bar_window = TimeProgressBarWindow::new(&time_progress_window, vec!(minutes_bar, hours_bar, days_bar));
+        let progress_bar_window = TimeProgressBarWindow::new(&time_progress_window, vec!(minutes_bar, hours_bar, days_bar, months_bar));
 
 
 
@@ -138,4 +141,26 @@ fn get_percentage_day_left() -> f64 {
     let minutes = (date.minute() as f64 * 60.0) + seconds;
     let days = (date.hour() as f64 * 3600.0) + minutes + seconds;
     days / SECONDS_IN_DAY as f64 * 100.00
+}
+
+fn get_percentage_month_left() -> f64 {
+    let date = Local::now();
+    let now = Utc::now();
+    let milli_seconds = (date.timestamp_subsec_millis() as f64/ 1000.0) as f64;
+    let seconds = date.second() as f64 + milli_seconds;
+    let minutes = (date.minute() as f64 * 60.0) + seconds;
+    let days = (date.hour() as f64 * 3600.0) + minutes + seconds;
+    let seconds_in_current_month = seconds_in_month(now.year(), now.month());
+    let seconds_elapsed_in_current_month = (date.day() as f64 * 86400.0) + days + minutes + seconds;
+
+    seconds_elapsed_in_current_month / seconds_in_current_month as f64 * 100.00
+}
+
+fn seconds_in_month(year: i32, month: u32) -> u32 {
+    // the first day of the next month...
+    let (y, m) = if month == 12 { (year + 1, 1) } else { (year, month + 1) };
+    let d = NaiveDate::from_ymd(y, m, 1);
+
+    // ...is preceded by the last day of the original month
+    d.pred().day() * SECONDS_IN_DAY
 }
