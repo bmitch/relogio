@@ -10,6 +10,7 @@ use std::thread::sleep;
 const SECONDS_IN_MINUTE: u32 = 60;
 const SECONDS_IN_HOUR: u32 = 3600;
 const SECONDS_IN_DAY: u32 = 86400;
+const SECONDS_IN_YEAR: u32 = 31536000;
 
 struct TimeProgressBar {
     width: i32,
@@ -83,12 +84,18 @@ fn main() {
             prefix: String::from(" M ")
         };
 
+        let years_bar = TimeProgressBar { 
+            width: window.get_max_x() - 3 - 15,
+            percentage: get_percentage_year_left(),
+            prefix: String::from(" Y ")
+        };
+
 
 
 
 
         let time_progress_window = newwin(6, window.get_max_x() - 3, 2, 1);
-        let progress_bar_window = TimeProgressBarWindow::new(&time_progress_window, vec!(minutes_bar, hours_bar, days_bar, months_bar));
+        let progress_bar_window = TimeProgressBarWindow::new(&time_progress_window, vec!(minutes_bar, hours_bar, days_bar, months_bar, years_bar));
 
 
 
@@ -154,6 +161,16 @@ fn get_percentage_month_left() -> f64 {
     let seconds_elapsed_in_current_month = (date.day() as f64 * 86400.0) + days + minutes + seconds;
 
     seconds_elapsed_in_current_month / seconds_in_current_month as f64 * 100.00
+}
+
+fn get_percentage_year_left() -> f64 {
+    let date = Local::now();
+    let now = Utc::now();
+
+    let start_of_year_timestamp = NaiveDate::from_ymd(now.year(), 1, 1).and_hms(0, 0, 0);
+    let now_timestamp = now.timestamp();
+    let seconds_passed_this_year = now_timestamp - start_of_year_timestamp.timestamp();
+    seconds_passed_this_year as f64 / SECONDS_IN_YEAR as f64 * 100.0
 }
 
 fn seconds_in_month(year: i32, month: u32) -> u32 {
