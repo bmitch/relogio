@@ -9,7 +9,7 @@ use std::thread::sleep;
 
 const SECONDS_IN_MINUTE: u32 = 60;
 const SECONDS_IN_HOUR: u32 = 3600;
-
+const SECONDS_IN_DAY: u32 = 86400;
 
 struct TimeProgressBar {
     width: i32,
@@ -71,6 +71,12 @@ fn main() {
             prefix: String::from(" H ")
         };
 
+        let days_bar = TimeProgressBar { 
+            width: window.get_max_x() - 3 - 15,
+            percentage: get_percentage_day_left(),
+            prefix: String::from(" D ")
+        };
+
         // Start Hours
         // time_progress_window.mv(1, 0);
 
@@ -79,7 +85,7 @@ fn main() {
 
 
         let time_progress_window = newwin(6, window.get_max_x() - 3, 2, 1);
-        let progress_bar_window = TimeProgressBarWindow::new(&time_progress_window, vec!(minutes_bar, hours_bar));
+        let progress_bar_window = TimeProgressBarWindow::new(&time_progress_window, vec!(minutes_bar, hours_bar, days_bar));
 
 
 
@@ -123,4 +129,13 @@ fn get_percentage_hour_left() -> f64 {
         let milli_seconds = (date.timestamp_subsec_millis() as f64/ 1000.0) as f64;
         let seconds = date.second() as f64 + milli_seconds;
         minutes / SECONDS_IN_HOUR as f64 * 100.00
+}
+
+fn get_percentage_day_left() -> f64 {
+    let date = Local::now();
+    let milli_seconds = (date.timestamp_subsec_millis() as f64/ 1000.0) as f64;
+    let seconds = date.second() as f64 + milli_seconds;
+    let minutes = (date.minute() as f64 * 60.0) + seconds;
+    let days = (date.hour() as f64 * 3600.0) + minutes + seconds;
+    days / SECONDS_IN_DAY as f64 * 100.00
 }
