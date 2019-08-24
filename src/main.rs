@@ -13,7 +13,6 @@ const SECONDS_IN_DAY: u32 = 86400;
 const SECONDS_IN_YEAR: u32 = 31536000;
 
 struct TimeProgressBar {
-    width: i32,
     percentage: f64,
     prefix: String
 }
@@ -21,6 +20,12 @@ struct TimeProgressBar {
 struct TimeProgressBarWindow<'a> {
     window: &'a Window,
     progress_bars: Vec<TimeProgressBar>
+}
+
+impl TimeProgressBar {
+    pub fn new(percentage: f64, prefix: String) -> TimeProgressBar {
+        TimeProgressBar { percentage: percentage, prefix: prefix }
+    }
 }
 
 impl<'a> TimeProgressBarWindow<'a> {
@@ -35,8 +40,9 @@ impl<'a> TimeProgressBarWindow<'a> {
     fn draw(&self) {
         for (i, progress_bar) in self.progress_bars.iter().enumerate() {
             self.window.printw(&progress_bar.prefix);
-            for n in 1..progress_bar.width {
-                if (n as f64 / progress_bar.width as f64 * 100.0) < progress_bar.percentage as f64 {
+            let width = self.window.get_max_x() - 3 - 15;
+            for n in 1..width {
+                if (n as f64 / width as f64 * 100.0) < progress_bar.percentage as f64 {
                     self.window.printw("█");
                     continue;
                 } 
@@ -46,9 +52,7 @@ impl<'a> TimeProgressBarWindow<'a> {
             self.window.printw(" ");
             self.window.printw(formatted_number.to_string());
             self.window.mv((i + 1) as i32, 0);
-
         }
-
         self.window.refresh();
         self.window.clear();
     }
@@ -60,44 +64,15 @@ fn main() {
     // https://en.wikipedia.org/wiki/Box_Drawing_(Unicode_block)
     loop {
 
-        let minutes_bar = TimeProgressBar { 
-            width: window.get_max_x() - 3 - 15,
-            percentage: get_percentage_minute_left(),
-            prefix: String::from(" M ")
-        };
-        
-        let hours_bar = TimeProgressBar { 
-            width: window.get_max_x() - 3 - 15,
-            percentage: get_percentage_hour_left(),
-            prefix: String::from(" H ")
-        };
-
-        let days_bar = TimeProgressBar { 
-            width: window.get_max_x() - 3 - 15,
-            percentage: get_percentage_day_left(),
-            prefix: String::from(" D ")
-        };
-
-        let months_bar = TimeProgressBar { 
-            width: window.get_max_x() - 3 - 15,
-            percentage: get_percentage_month_left(),
-            prefix: String::from(" M ")
-        };
-
-        let years_bar = TimeProgressBar { 
-            width: window.get_max_x() - 3 - 15,
-            percentage: get_percentage_year_left(),
-            prefix: String::from(" Y ")
-        };
-
-
-
-
-
         let time_progress_window = newwin(6, window.get_max_x() - 3, 2, 1);
-        let progress_bar_window = TimeProgressBarWindow::new(&time_progress_window, vec!(minutes_bar, hours_bar, days_bar, months_bar, years_bar));
-
-
+        let progress_bars = vec!(
+            TimeProgressBar::new(get_percentage_minute_left(), String::from(" M ")),
+            TimeProgressBar::new(get_percentage_hour_left(),  String::from(" H ")),
+            TimeProgressBar::new(get_percentage_day_left(), String::from(" D ")),
+            TimeProgressBar::new(get_percentage_month_left(), String::from(" M ")),
+            TimeProgressBar::new(get_percentage_year_left(), String::from(" Y ")),
+        );
+        let progress_bar_window = TimeProgressBarWindow::new(&time_progress_window, progress_bars);
 
         window.refresh();
         window.clear();
@@ -137,7 +112,6 @@ fn get_percentage_hour_left() -> f64 {
         let minutes = (date.minute() as f64 * 60.0) + seconds;
 
         let milli_seconds = (date.timestamp_subsec_millis() as f64/ 1000.0) as f64;
-        let seconds = date.second() as f64 + milli_seconds;
         minutes / SECONDS_IN_HOUR as f64 * 100.00
 }
 
@@ -164,7 +138,6 @@ fn get_percentage_month_left() -> f64 {
 }
 
 fn get_percentage_year_left() -> f64 {
-    let date = Local::now();
     let now = Utc::now();
 
     let start_of_year_timestamp = NaiveDate::from_ymd(now.year(), 1, 1).and_hms(0, 0, 0);
