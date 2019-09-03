@@ -58,11 +58,46 @@ impl<'a> TimeProgressBarWindow<'a> {
     }
 }
 
-fn main() {
-    let window = setup_main_window();
     // https://en.wikipedia.org/wiki/Geometric_Shapes
     // https://en.wikipedia.org/wiki/Box_Drawing_(Unicode_block)
+
+fn main() {
+    let window = setup_main_window();
+
+
     loop {
+
+        let date = Local::now();
+        let top_border = date.format("%H:%M:%S - %A %B %d, %Y").to_string();
+        let border = format!("{: ^1$}", top_border.to_string(), window.get_max_x() as usize);
+
+        let horizontal_border = "━".repeat((window.get_max_x() -2) as usize);
+        window.color_set(1);
+        window.printw(&border);
+        window.mv(1, 0);
+        window.color_set(2);
+
+        window.printw("┃");
+        window.printw(" ".repeat((window.get_max_x() -2) as usize));
+        window.printw("┃");
+        window.printw("┃");
+        window.printw(" ".repeat((window.get_max_x() -2) as usize));
+        window.printw("┃");
+        window.printw("┃");
+        window.printw(" ".repeat((window.get_max_x() -2) as usize));
+        window.printw("┃");
+        window.printw("┃");
+        window.printw(" ".repeat((window.get_max_x() -2) as usize));
+        window.printw("┃");
+        window.printw("┃");
+        window.printw(" ".repeat((window.get_max_x() -2) as usize));
+        window.printw("┃"); 
+        window.printw("┃");
+        window.printw(" ".repeat((window.get_max_x() -2) as usize));
+        window.printw("┃");          
+        window.printw("┃");
+        window.printw(" ".repeat((window.get_max_x() -2) as usize));
+        window.printw("┃");
 
         let time_progress_window = newwin(6, window.get_max_x() - 3, 2, 1);
         let progress_bars = vec!(
@@ -75,9 +110,8 @@ fn main() {
         let progress_bar_window = TimeProgressBarWindow::new(&time_progress_window, progress_bars);
 
         window.refresh();
-        window.clear();
         progress_bar_window.draw();
-
+        window.clear();
         sleep(Duration::from_millis(50));
    }
   endwin();
@@ -85,7 +119,6 @@ fn main() {
 
 fn setup_main_window() -> Window {
     let window = initscr();
-    window.color_set(1);
 
     if has_colors() {
         start_color();
@@ -111,7 +144,6 @@ fn get_percentage_hour_left() -> f64 {
         let seconds = date.second() as f64 + milli_seconds;
         let minutes = (date.minute() as f64 * 60.0) + seconds;
 
-        let milli_seconds = (date.timestamp_subsec_millis() as f64/ 1000.0) as f64;
         minutes / SECONDS_IN_HOUR as f64 * 100.00
 }
 
