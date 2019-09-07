@@ -1,5 +1,6 @@
 use chrono::{Datelike, Timelike, Utc, NaiveDate};
 use chrono::prelude::*;
+use reqwest::get;
 
 const SECONDS_IN_MINUTE: u32 = 60;
 const SECONDS_IN_HOUR: u32 = 3600;
@@ -79,4 +80,39 @@ pub fn get_current_day_of_year() -> u32 {
 
 pub fn get_current_year() -> i32 {
     Utc::now().year()
+}
+
+pub fn get_moon_data(dt: Date<Utc>) -> String {
+    let url = format!(
+        "https://api.usno.navy.mil/moon/phase?date={}&nump=1",
+        dt.format("%m/%d/%Y")
+        );
+    get(&url).unwrap().text().unwrap()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    // this is a really slow test and will break without internet
+    fn test_retrieve_moon_data() {
+        // march 2019 supermoon
+        assert_eq!(get_moon_data(Utc.ymd(2019, 03, 17)), "{
+      \"error\":false,
+      \"apiversion\":\"2.2.1\",
+      \"year\":2019,
+      \"month\":3,
+      \"day\":17,
+      \"numphases\":1,
+      \"datechanged\":false, 
+      \"phasedata\":[
+            {
+               \"phase\":\"Full Moon\",
+               \"date\":\"2019 Mar 21\",
+               \"time\":\"01:43\"
+            }
+      ]
+   }");
+    }
 }
