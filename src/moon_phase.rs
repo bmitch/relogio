@@ -1,9 +1,6 @@
-use chrono::{Utc, Date, TimeZone};
-use reqwest::get;
-use std::error::Error;
-use serde_json;
+use chrono::{Date, TimeZone, Utc};
 use serde::{de, Deserialize};
-use serde::de::{Visitor, Deserializer};
+use serde_json;
 use std::fmt;
 
 fn get_moon_data(dt: Date<Utc>) -> MoonData {
@@ -15,7 +12,7 @@ fn get_usno_json(dt: Date<Utc>) -> reqwest::Result<String> {
     let url = dt.format("https://api.usno.navy.mil/moon/phase?date=%m/%d/%Y&nump=1")
         .to_string();
 
-    get(&url)?.text()
+    reqwest::get(&url)?.text()
 }
 
 fn process_moon_data(moon_json: &str) -> serde_json::Result<MoonData> {
@@ -51,11 +48,11 @@ enum MoonPhase {
 
 impl<'de> Deserialize<'de> for MoonPhase {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where D: Deserializer<'de>,
+        where D: de::Deserializer<'de>,
     {
         struct MoonPhaseVisitor;
 
-        impl<'de> Visitor<'de> for MoonPhaseVisitor {
+        impl<'de> de::Visitor<'de> for MoonPhaseVisitor {
 
             type Value = MoonPhase;
 
