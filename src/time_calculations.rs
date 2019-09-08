@@ -1,6 +1,9 @@
 use chrono::{Datelike, Timelike, Utc, NaiveDate};
 use chrono::prelude::*;
 use reqwest::get;
+use serde::{Deserialize};
+use serde::de::{Visitor, Deserializer, Error};
+use std::fmt;
 
 const SECONDS_IN_MINUTE: u32 = 60;
 const SECONDS_IN_HOUR: u32 = 3600;
@@ -65,7 +68,7 @@ pub fn seconds_in_month(year: i32, month: u32) -> u32 {
 
 pub fn get_current_day_of_year() -> u32 {
     let month_length_days = vec![31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-    let today_date: DateTime<Utc> = Utc::now(); 
+    let today_date: DateTime<Utc> = Utc::now();
     let this_month = today_date.month()-1;
     let this_day = today_date.day();
     let mut month_ticker: usize = 0;
@@ -82,12 +85,76 @@ pub fn get_current_year() -> i32 {
     Utc::now().year()
 }
 
-pub fn get_moon_data(dt: Date<Utc>) -> String {
-    let url = format!(
-        "https://api.usno.navy.mil/moon/phase?date={}&nump=1",
-        dt.format("%m/%d/%Y")
-        );
-    get(&url).unwrap().text().unwrap()
+fn get_moon_data(dt: Date<Utc>) -> MoonData {
+    let url = dt.format("https://api.usno.navy.mil/moon/phase?date=%m/%d/%Y&nump=1")
+        .to_string();
+    get(&url).unwrap().json().unwrap()
+}
+
+#[derive(Deserialize, Debug)]
+struct MoonData {
+    error: bool,
+    apiversion: String,
+    year: i32,
+    month: u32,
+    day: u32,
+    numphases: usize,
+    datechanged: bool,
+    phasedata: Vec<PhaseDate>,
+}
+
+#[derive(Deserialize, Debug)]
+struct PhaseDate {
+    phase: MoonPhase,
+    date: String,
+    time: String,
+}
+
+#[derive(Debug, PartialEq)]
+enum MoonPhase {
+    New,
+    FirstQuarter,
+    Full,
+    LastQuarter,
+}
+
+impl<'de> Deserialize<'de> for MoonPhase {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+        where D: Deserializer<'de>,
+    {
+        struct MoonPhaseVisitor;
+
+        impl<'de> Visitor<'de> for MoonPhaseVisitor {
+
+            type Value = MoonPhase;
+
+            fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+                write!(formatter,"One of `New Moon`, `First Quarter`, `Full Moon`, or `Last Quarter`")
+            }
+
+            fn visit_str<E>(self, s: &str) -> Result<MoonPhase, E>
+                where E: Error,
+            {
+                println!("{}", s);
+                match s {
+                    "New Moon" => Ok(MoonPhase::New),
+                    "First Quarter" => Ok(MoonPhase::FirstQuarter),
+                    "Full Moon" => Ok(MoonPhase::Full),
+                    "Last Quarter" => Ok(MoonPhase::LastQuarter),
+                    _ => Err(Error::unknown_variant(s, VARIANTS)),
+                }
+            }
+        }
+
+        const VARIANTS: &'static [&'static str] = &[
+            "New Moon",
+            "First Quarter",
+            "Full Moon",
+            "Last Quarter",
+        ];
+
+        deserializer.deserialize_str(MoonPhaseVisitor)
+    }
 }
 
 #[cfg(test)]
@@ -98,21 +165,7 @@ mod tests {
     // this is a really slow test and will break without internet
     fn test_retrieve_moon_data() {
         // march 2019 supermoon
-        assert_eq!(get_moon_data(Utc.ymd(2019, 03, 17)), "{
-      \"error\":false,
-      \"apiversion\":\"2.2.1\",
-      \"year\":2019,
-      \"month\":3,
-      \"day\":17,
-      \"numphases\":1,
-      \"datechanged\":false, 
-      \"phasedata\":[
-            {
-               \"phase\":\"Full Moon\",
-               \"date\":\"2019 Mar 21\",
-               \"time\":\"01:43\"
-            }
-      ]
-   }");
+        let md = get_moon_data(Utc.ymd(2019, 03, 17));
+        assert_eq!(md.phasedata[0].phase, MoonPhase::Full);
     }
 }
