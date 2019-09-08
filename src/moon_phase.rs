@@ -9,7 +9,8 @@ fn get_moon_data(dt: Date<Utc>) -> MoonData {
 }
 
 fn get_usno_json(dt: Date<Utc>) -> reqwest::Result<String> {
-    let url = dt.format("https://api.usno.navy.mil/moon/phase?date=%m/%d/%Y&nump=1")
+    let url = dt
+        .format("https://api.usno.navy.mil/moon/phase?date=%m/%d/%Y&nump=1")
         .to_string();
 
     reqwest::get(&url)?.text()
@@ -57,7 +58,10 @@ impl<'de> Deserialize<'de> for MoonPhase {
             type Value = MoonPhase;
 
             fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-                write!(formatter,"One of `New Moon`, `First Quarter`, `Full Moon`, or `Last Quarter`")
+                write!(
+                    formatter,
+                    "One of `New Moon`, `First Quarter`, `Full Moon`, or `Last Quarter`"
+                )
             }
 
             fn visit_str<E>(self, s: &str) -> Result<MoonPhase, E>
@@ -73,12 +77,8 @@ impl<'de> Deserialize<'de> for MoonPhase {
             }
         }
 
-        const VARIANTS: &'static [&'static str] = &[
-            "New Moon",
-            "First Quarter",
-            "Full Moon",
-            "Last Quarter",
-        ];
+        const VARIANTS: &'static [&'static str] =
+            &["New Moon", "First Quarter", "Full Moon", "Last Quarter"];
 
         deserializer.deserialize_str(MoonPhaseVisitor)
     }
@@ -127,7 +127,7 @@ mod tests {
       \"year\":2019,
       \"month\":3,
       \"day\":20,
-      \"nump";   // cut off here
+      \"nump"; // cut off here
         assert!(process_moon_data(moon_json).is_err())
     }
 }
