@@ -1,9 +1,10 @@
 use chrono::{Date, TimeZone, Utc};
 use serde::{de, Deserialize};
-use serde_json;
+use serde_json::{Value, from_str, json};
 use std::fmt;
+use std::error::Error;
 
-fn get_moon_data(dt: Date<Utc>) -> MoonData {
+fn get_moon_phase(dt: Date<Utc>) -> MoonPhase {
     let moon_json = get_usno_json(dt).expect("Problem getting data from USNO");
     process_moon_data(&moon_json).expect("Problem trying to parse json")
 }
@@ -16,8 +17,38 @@ fn get_usno_json(dt: Date<Utc>) -> reqwest::Result<String> {
     reqwest::get(&url)?.text()
 }
 
-fn process_moon_data(moon_json: &str) -> serde_json::Result<MoonData> {
-    serde_json::from_str(moon_json)
+#[derive(Debug)]
+struct PhaseError {
+    found: Option<String>,
+}
+
+impl PhaseError {
+    fn new(s: Option<&str>) -> PhaseError {
+        PhaseError {found: s.map(|s| s.to_string())}
+    }
+}
+
+impl fmt::Display for PhaseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "\
+Expected one of `New Moon`, `First Quarter`, \
+`Full Moon`, or `Last Quarter`, got {:?}",
+                self.found
+                )
+    }
+}
+
+impl Error for PhaseError { }
+
+fn process_moon_data(moon_json: &str) -> Result<MoonPhase, Box<dyn Error>> {
+    let data: Value = from_str(moon_json)?;
+    match data["phasedata"][0]["phase"].as_str() {
+        Some("New Moon") => Ok(MoonPhase::New),
+        Some("First Quarter") => Ok(MoonPhase::FirstQuarter),
+        Some("Full Moon") => Ok(MoonPhase::Full),
+        Some("Last Quarter") => Ok(MoonPhase::LastQuarter),
+        s => Err(Box::new(PhaseError::new(s))),
+    }
 }
 
 #[derive(Deserialize, Debug)]
@@ -93,7 +124,7 @@ mod tests {
     // and it will break without internet
     #[ignore]
     fn test_get_moon_data() {
-        get_moon_data(Utc.ymd(2019, 03, 17));
+        get_moon_phase(Utc.ymd(2019, 03, 17));
     }
 
     #[test]
@@ -115,8 +146,8 @@ mod tests {
             }
       ]
    }";
-        let md = process_moon_data(moon_json).unwrap();
-        assert_eq!(md.phasedata[0].phase, MoonPhase::Full);
+        let phase = process_moon_data(moon_json).unwrap();
+        assert_eq!(phase, MoonPhase::Full);
     }
 
     #[test]
