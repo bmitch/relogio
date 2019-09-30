@@ -1,6 +1,5 @@
 use chrono::{Date, TimeZone, Utc};
-use serde::{de, Deserialize};
-use serde_json::{Value, from_str, json};
+use serde_json::{Value, from_str};
 use std::fmt;
 use std::error::Error;
 
@@ -51,68 +50,12 @@ fn process_moon_data(moon_json: &str) -> Result<MoonPhase, Box<dyn Error>> {
     }
 }
 
-#[derive(Deserialize, Debug)]
-struct MoonData {
-    error: bool,
-    apiversion: String,
-    year: i32,
-    month: u32,
-    day: u32,
-    numphases: usize,
-    datechanged: bool,
-    phasedata: Vec<PhaseDate>,
-}
-
-#[derive(Deserialize, Debug)]
-struct PhaseDate {
-    phase: MoonPhase,
-    date: String,
-    time: String,
-}
-
 #[derive(Debug, PartialEq)]
 enum MoonPhase {
     New,
     FirstQuarter,
     Full,
     LastQuarter,
-}
-
-impl<'de> Deserialize<'de> for MoonPhase {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where D: de::Deserializer<'de>,
-    {
-        struct MoonPhaseVisitor;
-
-        impl<'de> de::Visitor<'de> for MoonPhaseVisitor {
-
-            type Value = MoonPhase;
-
-            fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-                write!(
-                    formatter,
-                    "One of `New Moon`, `First Quarter`, `Full Moon`, or `Last Quarter`"
-                )
-            }
-
-            fn visit_str<E>(self, s: &str) -> Result<MoonPhase, E>
-                where E: de::Error,
-            {
-                match s {
-                    "New Moon" => Ok(MoonPhase::New),
-                    "First Quarter" => Ok(MoonPhase::FirstQuarter),
-                    "Full Moon" => Ok(MoonPhase::Full),
-                    "Last Quarter" => Ok(MoonPhase::LastQuarter),
-                    _ => Err(de::Error::unknown_variant(s, VARIANTS)),
-                }
-            }
-        }
-
-        const VARIANTS: &'static [&'static str] =
-            &["New Moon", "First Quarter", "Full Moon", "Last Quarter"];
-
-        deserializer.deserialize_str(MoonPhaseVisitor)
-    }
 }
 
 #[cfg(test)]
