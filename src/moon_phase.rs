@@ -104,4 +104,26 @@ mod tests {
       \"nump"; // cut off here
         assert!(process_moon_data(moon_json).is_err())
     }
+
+    #[test]
+    fn test_invalid_moon_phase() {
+        let moon_json = "{
+      \"error\":false,
+      \"apiversion\":\"2.2.1\",
+      \"year\":2019,
+      \"month\":3,
+      \"day\":20,
+      \"numphases\":1,
+      \"datechanged\":false,
+      \"phasedata\":[
+            {
+               \"phase\":\"Blue Moon\",
+               \"date\":\"2019 Mar 21\",
+               \"time\":\"01:43\"
+            }
+      ]
+   }";  // blue moon is not a phase
+        assert!(process_moon_data(moon_json).is_err())
+    }
+
 }
