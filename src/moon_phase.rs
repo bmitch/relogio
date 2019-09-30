@@ -1,7 +1,7 @@
 use chrono::{Date, TimeZone, Utc};
-use serde_json::{Value, from_str};
-use std::fmt;
+use serde_json::{from_str, Value};
 use std::error::Error;
+use std::fmt;
 
 fn get_moon_phase(dt: Date<Utc>) -> MoonPhase {
     let moon_json = get_usno_json(dt).expect("Problem getting data from USNO");
@@ -23,21 +23,23 @@ struct PhaseError {
 
 impl PhaseError {
     fn new(s: Option<&str>) -> PhaseError {
-        PhaseError {found: s.map(|s| s.to_string())}
+        PhaseError { found: s.map(|s| s.to_string()) }
     }
 }
 
 impl fmt::Display for PhaseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "\
+        write!(
+            f,
+            "\
 Expected one of `New Moon`, `First Quarter`, \
 `Full Moon`, or `Last Quarter`, got {:?}",
-                self.found
-                )
+            self.found
+        )
     }
 }
 
-impl Error for PhaseError { }
+impl Error for PhaseError {}
 
 fn process_moon_data(moon_json: &str) -> Result<MoonPhase, Box<dyn Error>> {
     let data: Value = from_str(moon_json)?;
@@ -122,7 +124,7 @@ mod tests {
                \"time\":\"01:43\"
             }
       ]
-   }";  // blue moon is not a phase
+   }"; // blue moon is not a phase
         assert!(process_moon_data(moon_json).is_err())
     }
 
