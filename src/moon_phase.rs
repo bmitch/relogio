@@ -1,34 +1,21 @@
 use chrono::{Date, TimeZone, Utc};
-use reqwest_mock::{Client, DirectClient};
+use reqwest_mock::{Client, GenericClient};
 use serde_json::{from_str, Value};
 use std::error::Error;
 use std::fmt;
 
 fn get_moon_phase(dt: Date<Utc>) -> MoonPhase {
-    let moon_json = new_client()
-        .get_usno_json(dt)
+    let moon_json = get_usno_json(&GenericClient::direct(), dt)
         .expect("Problem getting data from USNO");
     process_moon_data(&moon_json).expect("Problem trying to parse json")
 }
 
-// An abstraction of a reqwest client that may hold a real client or a stub
-struct MyClient<C: Client> {
-    client: C,
-}
+fn get_usno_json(client: &GenericClient, dt: Date<Utc>) -> Result<String, reqwest_mock::error::Error> {
+    let url = dt
+        .format("https://api.usno.navy.mil/moon/phase?date=%m/%d/%Y&nump=1")
+        .to_string();
 
-impl<C: Client> MyClient<C> {
-    fn get_usno_json(&self, dt: Date<Utc>) -> Result<String, reqwest_mock::error::Error> {
-        let url = dt
-            .format("https://api.usno.navy.mil/moon/phase?date=%m/%d/%Y&nump=1")
-            .to_string();
-
-        self.client.get(&url).send()?.body_to_utf8()
-    }
-}
-
-// Use a DirectClient for the actual application
-fn new_client() -> MyClient<DirectClient> {
-    MyClient { client: DirectClient::new() }
+    client.get(&url).send()?.body_to_utf8()
 }
 
 #[derive(Debug)]
@@ -81,7 +68,7 @@ mod tests {
     use reqwest_mock::{Method, StubClient, StubDefault, StubSettings, StubStrictness, Url};
 
     // A stub client for testing using the March 2019 Supermoon
-    fn test_client() -> MyClient<StubClient> {
+    fn test_client() -> GenericClient {
         let mut client = StubClient::new(StubSettings {
             default: StubDefault::Error,
             strictness: StubStrictness::MethodUrl,
@@ -113,7 +100,7 @@ mod tests {
             .mock()
             .is_ok());
 
-        MyClient { client: client }
+        GenericClient::stub(client)
     }
 
     #[test]
@@ -126,13 +113,13 @@ mod tests {
 
     #[test]
     fn test_get_json_data_for_given_date() {
-        assert!(test_client().get_usno_json(Utc.ymd(2019, 03, 17)).is_ok());
+        assert!(get_usno_json(&test_client(), Utc.ymd(2019, 03, 17)).is_ok());
     }
 
     #[test]
     fn test_process_moon_data() {
         // march 2019 supermoon
-        let moon_json = test_client().get_usno_json(Utc.ymd(2019, 03, 17)).unwrap();
+        let moon_json = get_usno_json(&test_client(), Utc.ymd(2019, 03, 17)).unwrap();
         let phase = process_moon_data(&moon_json).unwrap();
         assert_eq!(phase, MoonPhase::Full);
     }
