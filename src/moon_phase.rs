@@ -132,23 +132,8 @@ mod tests {
     #[test]
     fn test_process_moon_data() {
         // march 2019 supermoon
-        let moon_json = "{
-      \"error\":false,
-      \"apiversion\":\"2.2.1\",
-      \"year\":2019,
-      \"month\":3,
-      \"day\":20,
-      \"numphases\":1,
-      \"datechanged\":false,
-      \"phasedata\":[
-            {
-               \"phase\":\"Full Moon\",
-               \"date\":\"2019 Mar 21\",
-               \"time\":\"01:43\"
-            }
-      ]
-   }";
-        let phase = process_moon_data(moon_json).unwrap();
+        let moon_json = test_client().get_usno_json(Utc.ymd(2019, 03, 17)).unwrap();
+        let phase = process_moon_data(&moon_json).unwrap();
         assert_eq!(phase, MoonPhase::Full);
     }
 
