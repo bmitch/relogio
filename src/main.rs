@@ -4,6 +4,8 @@ extern crate pancurses;
 mod time_calculations;
 mod progress_bars;
 mod main_window;
+mod moon_phase;
+
 use pancurses::*;
 use std::time::Duration;
 use std::thread::sleep;

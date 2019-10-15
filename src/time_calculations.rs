@@ -64,7 +64,7 @@ pub fn seconds_in_month(year: i32, month: u32) -> u32 {
 
 pub fn get_current_day_of_year() -> u32 {
     let month_length_days = vec![31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-    let today_date: DateTime<Utc> = Utc::now(); 
+    let today_date: DateTime<Utc> = Utc::now();
     let this_month = today_date.month()-1;
     let this_day = today_date.day();
     let mut month_ticker: usize = 0;
